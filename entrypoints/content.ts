@@ -1,13 +1,19 @@
+import { waitForElement } from "../lib/dom/waitForElement";
+import { sendMessage, MessageType } from "../lib/messaging";
+import { createBadge } from "../lib/ui/badge";
+
 export default defineContentScript({
   matches: ["*://claude.ai/*"],
 
   async main() {
-    console.log("🚀 Helix content script loaded!");
+    console.log("🚀 Helix loaded!");
 
-    const response = await browser.runtime.sendMessage({
-      type: "HELIX_PING",
-    });
+    await waitForElement('[data-testid="chat-input"]');
 
-    console.log("📨 Background replied:", response);
+    createBadge();
+
+    const response = await sendMessage(MessageType.PING);
+
+    console.log(response);
   },
 });

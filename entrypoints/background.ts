@@ -1,14 +1,18 @@
+import {
+  registerHandler,
+  startMessageServer,
+  MessageType,
+} from "../lib/messaging";
+
 export default defineBackground(() => {
-  console.log("🚀 Helix background started!", {
-    id: browser.runtime.id,
+  console.log("🚀 Helix background started!");
+
+  registerHandler(MessageType.PING, () => {
+    return {
+      success: true,
+      reply: "Hello from the background!",
+    };
   });
 
-browser.runtime.onMessage.addListener(async (message, sender) => {
-  console.log("📩 Background received:", message);
-
-  return {
-    success: true,
-    reply: "Hello from the background!",
-  };
+  startMessageServer();
 });
-})
