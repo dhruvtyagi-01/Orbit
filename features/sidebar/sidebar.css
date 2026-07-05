@@ -1,0 +1,39 @@
+#helix-sidebar {
+  position: fixed;
+  top: 0;
+  right: -360px;
+
+  width: 340px;
+  height: 100vh;
+
+  background: #202123;
+  color: white;
+
+  border-left: 1px solid #3b3b3b;
+
+  box-shadow: -8px 0 20px rgba(0, 0, 0, 0.25);
+
+  transition: right 0.25s ease;
+
+  z-index: 999998;
+
+  display: flex;
+  flex-direction: column;
+}
+
+#helix-sidebar.open {
+  right: 0;
+}
+
+#helix-sidebar-header {
+  padding: 18px;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  border-bottom: 1px solid #3b3b3b;
+}
+
+#helix-sidebar-content {
+  padding: 18px;
+}

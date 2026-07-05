@@ -1,6 +1,6 @@
 import { waitForElement } from "../lib/dom/waitForElement";
 import { sendMessage, MessageType } from "../lib/messaging";
-import { createBadge } from "../lib/ui/badge";
+import { createFloatingButton } from "../features/floatingButton/floatingButton";
 
 export default defineContentScript({
   matches: ["*://claude.ai/*"],
@@ -8,9 +8,11 @@ export default defineContentScript({
   async main() {
     console.log("🚀 Helix loaded!");
 
-    await waitForElement('[data-testid="chat-input"]');
+    await waitForElement<HTMLDivElement>(
+      '[data-testid="chat-input"]'
+    );
 
-    createBadge();
+    createFloatingButton();
 
     const response = await sendMessage(MessageType.PING);
 

@@ -1,0 +1,45 @@
+#helix-floating-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+
+  width: 56px;
+  height: 56px;
+
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 50%;
+
+  background: #2b2b2b;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 24px;
+
+  cursor: pointer;
+
+  z-index: 999999;
+
+  box-shadow:
+      0 10px 30px rgba(0,0,0,.35);
+
+  transition:
+      transform .2s ease,
+      background .2s ease,
+      box-shadow .2s ease;
+}
+
+#helix-floating-button:hover {
+  transform: scale(1.08);
+
+  background: #3a3a3a;
+
+  box-shadow:
+      0 14px 35px rgba(0,0,0,.45);
+}
+
+#helix-floating-button:active {
+  transform: scale(.95);
+}
