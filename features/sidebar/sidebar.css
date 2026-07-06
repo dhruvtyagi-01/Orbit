@@ -1,21 +1,19 @@
 #helix-sidebar {
   position: fixed;
   top: 0;
-  right: -360px;
+  right: -340px;
 
   width: 340px;
   height: 100vh;
 
-  background: #202123;
-  color: white;
+  background: #1f1f1f;
+  color: #ffffff;
 
-  border-left: 1px solid #3b3b3b;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.25);
 
-  box-shadow: -8px 0 20px rgba(0, 0, 0, 0.25);
+  transition: right 0.3s ease;
 
-  transition: right 0.25s ease;
-
-  z-index: 999998;
+  z-index: 999999;
 
   display: flex;
   flex-direction: column;
@@ -26,14 +24,41 @@
 }
 
 #helix-sidebar-header {
+  display: flex;
+  align-items: center;
+
   padding: 18px;
 
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 700;
 
-  border-bottom: 1px solid #3b3b3b;
+  border-bottom: 1px solid #333;
 }
 
 #helix-sidebar-content {
+  flex: 1;
+
   padding: 18px;
+
+  overflow-y: auto;
+}
+
+.helix-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.helix-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #bcbcbc;
+}
+
+.helix-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 14px;
 }

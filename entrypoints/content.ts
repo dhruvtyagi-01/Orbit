@@ -1,12 +1,19 @@
 import { waitForElement } from "../lib/dom/waitForElement";
-import { sendMessage, MessageType } from "../lib/messaging";
 import { createFloatingButton } from "../features/floatingButton/floatingButton";
+import { getConversation } from "../utils/parser";
+import { calculateTokenStats } from "../utils/tokenEstimator";
+import { updateAnalytics } from "../features/sidebar/analytics";
+import { startConversationObserver } from "../utils/conversationObserver";
 
 export default defineContentScript({
   matches: ["*://claude.ai/*"],
 
   async main() {
-    console.log("🚀 Helix loaded!");
+    if ((window as any).__ORBIT_INITIALIZED__) {
+      return;
+    }
+
+    (window as any).__ORBIT_INITIALIZED__ = true;
 
     await waitForElement<HTMLDivElement>(
       '[data-testid="chat-input"]'
@@ -14,8 +21,11 @@ export default defineContentScript({
 
     createFloatingButton();
 
-    const response = await sendMessage(MessageType.PING);
+    const conversation = getConversation();
+    const stats = calculateTokenStats(conversation);
 
-    console.log(response);
+    updateAnalytics(stats);
+
+    startConversationObserver();
   },
 });
