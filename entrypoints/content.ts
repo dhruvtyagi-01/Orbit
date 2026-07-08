@@ -1,8 +1,8 @@
 import { waitForElement } from "../lib/dom/waitForElement";
+import { waitForConversation } from "../lib/dom/waitForConversation";
+
 import { createFloatingButton } from "../features/floatingButton/floatingButton";
-import { getConversation } from "../utils/parser";
-import { calculateTokenStats } from "../utils/tokenEstimator";
-import { updateAnalytics } from "../features/sidebar/analytics";
+
 import { startConversationObserver } from "../utils/conversationObserver";
 
 export default defineContentScript({
@@ -15,17 +15,17 @@ export default defineContentScript({
 
     (window as any).__ORBIT_INITIALIZED__ = true;
 
+    // Wait until Claude UI is ready.
     await waitForElement<HTMLDivElement>(
       '[data-testid="chat-input"]'
     );
 
     createFloatingButton();
 
-    const conversation = getConversation();
-    const stats = calculateTokenStats(conversation);
+    // Wait until an actual conversation exists.
+    await waitForConversation();
 
-    updateAnalytics(stats);
-
-    startConversationObserver();
+    // Start analytics.
+    await startConversationObserver();
   },
 });
