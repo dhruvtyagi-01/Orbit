@@ -1,60 +1,66 @@
-import { waitForElement } from "../lib/dom/waitForElement";
-import { getConversation } from "../utils/parser";
-import { calculateTokenStats } from "../utils/tokenEstimator";
+import { getConversation } from "./parser";
+import { calculateTokenStats } from "./tokenEstimator";
 import { updateAnalytics } from "../features/sidebar/analytics";
+import { onNavigation } from "./navigationObserver";
 
-let feedObserver: MutationObserver | null = null;
 let pageObserver: MutationObserver | null = null;
+let feedObserver: MutationObserver | null = null;
 
 let currentFeed: HTMLElement | null = null;
-
-let timeout: number | undefined;
+let refreshTimeout: number | null = null;
 
 function refreshAnalytics() {
   const conversation = getConversation();
+
+  console.log("[Orbit] Conversation length:", conversation.length);
+
+  if (conversation.length === 0) {
+    console.log("[Orbit] No conversation, showing waiting state");
+    updateAnalytics(null);
+    return;
+  }
+
   const stats = calculateTokenStats(conversation);
+
+  console.log("[Orbit] Updating analytics:", stats);
 
   updateAnalytics(stats);
 }
 
-async function waitForConversation(feed: HTMLElement): Promise<void> {
-  const hasMessages = () =>
-    feed.querySelectorAll("[data-is-streaming], [data-testid]").length > 0 ||
-    feed.textContent!.trim().length > 0;
+function scheduleRefresh() {
+  if (refreshTimeout !== null) {
+    clearTimeout(refreshTimeout);
+  }
 
-  if (hasMessages()) {
+  refreshTimeout = window.setTimeout(() => {
+    refreshAnalytics();
+  }, 100);
+}
+
+function detachFeed() {
+  if (feedObserver) {
+    console.log("[Orbit] Detaching feed");
+    feedObserver.disconnect();
+  }
+
+  feedObserver = null;
+  currentFeed = null;
+}
+
+function attachFeed(feed: HTMLElement) {
+  if (feed === currentFeed) {
     return;
   }
 
-  await new Promise<void>((resolve) => {
-    const observer = new MutationObserver(() => {
-      if (!hasMessages()) {
-        return;
-      }
+  console.log("[Orbit] Feed attached");
 
-      observer.disconnect();
-      resolve();
-    });
-
-    observer.observe(feed, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-  });
-}
-
-function attachFeedObserver(feed: HTMLElement) {
-  feedObserver?.disconnect();
+  detachFeed();
 
   currentFeed = feed;
 
   feedObserver = new MutationObserver(() => {
-    window.clearTimeout(timeout);
-
-    timeout = window.setTimeout(() => {
-      refreshAnalytics();
-    }, 200);
+    console.log("[Orbit] Feed mutation");
+    scheduleRefresh();
   });
 
   feedObserver.observe(feed, {
@@ -63,57 +69,69 @@ function attachFeedObserver(feed: HTMLElement) {
     characterData: true,
   });
 
-  console.log("[Orbit] Attached to conversation feed.");
+  scheduleRefresh();
 }
 
-async function connectToFeed(feed: HTMLElement) {
-  if (currentFeed === feed) {
-    return;
+function tryAttachFeed(): boolean {
+  const feed = document.querySelector<HTMLElement>('[role="feed"]');
+
+  if (!feed) {
+    console.log("[Orbit] Feed not found");
+    return false;
   }
 
-  attachFeedObserver(feed);
+  console.log("[Orbit] Feed found");
 
-  await waitForConversation(feed);
+  attachFeed(feed);
 
-  refreshAnalytics();
+  return true;
 }
 
-export async function startConversationObserver() {
+export function startConversationObserver() {
   if (pageObserver) {
+    console.log("[Orbit] Conversation observer already running");
     return;
   }
 
-  const feed = await waitForElement<HTMLElement>('[role="feed"]');
+  console.log("[Orbit] Starting conversation observer");
 
-  await connectToFeed(feed);
-
-  pageObserver = new MutationObserver(async () => {
-    const latestFeed = document.querySelector<HTMLElement>('[role="feed"]');
-
-    if (!latestFeed || latestFeed === currentFeed) {
-      return;
-    }
-
-    console.log("[Orbit] Conversation feed changed.");
-
-    await connectToFeed(latestFeed);
+  // Observe the whole page. As soon as Claude creates or replaces
+  // the feed we'll attach automatically.
+  pageObserver = new MutationObserver(() => {
+    tryAttachFeed();
   });
 
   pageObserver.observe(document.body, {
     childList: true,
     subtree: true,
   });
+
+  // Existing conversation
+  tryAttachFeed();
+
+  onNavigation(() => {
+    console.log("[Orbit] Navigation");
+
+    detachFeed();
+
+    updateAnalytics(null);
+
+    // No timeout here.
+    // The page observer will automatically attach
+    // when Claude creates the next feed.
+  });
 }
 
 export function stopConversationObserver() {
-  feedObserver?.disconnect();
+  console.log("[Orbit] Stopping conversation observer");
+
+  detachFeed();
+
   pageObserver?.disconnect();
-
-  feedObserver = null;
   pageObserver = null;
-  currentFeed = null;
 
-  if (timeout) {
-    window.clearTimeout(timeout);
+  if (refreshTimeout !== null) {
+    clearTimeout(refreshTimeout);
+    refreshTimeout = null;
   }
 }

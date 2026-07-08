@@ -1,8 +1,19 @@
 import { TokenStats } from "../../utils/tokenEstimator";
 import { getSidebarContent } from "./sidebar";
 
-export function updateAnalytics(stats: TokenStats) {
+export function updateAnalytics(stats: TokenStats | null) {
   const container = getSidebarContent();
+
+  // Show "waiting" state when no stats or no messages
+  if (!stats || stats.totalMessages === 0) {
+    container.innerHTML = `
+      <div class="helix-waiting">
+        <div class="helix-waiting-icon">⏳</div>
+        <div class="helix-waiting-text">Waiting for first message...</div>
+      </div>
+    `;
+    return;
+  }
 
   container.innerHTML = `
     <div class="helix-section">

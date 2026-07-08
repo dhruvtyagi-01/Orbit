@@ -7,7 +7,6 @@ let content: HTMLDivElement | null = null;
 export function getSidebarContent(): HTMLDivElement {
   if (!sidebar) {
     sidebar = document.createElement("div");
-
     sidebar.id = "helix-sidebar";
 
     sidebar.innerHTML = `
@@ -16,7 +15,12 @@ export function getSidebarContent(): HTMLDivElement {
         <span>Orbit</span>
       </div>
 
-      <div id="helix-sidebar-content"></div>
+      <div id="helix-sidebar-content">
+        <div class="helix-waiting">
+          <div class="helix-waiting-icon">⏳</div>
+          <div class="helix-waiting-text">Waiting for first message...</div>
+        </div>
+      </div>
     `;
 
     document.body.appendChild(sidebar);
